@@ -47,26 +47,51 @@ class MainActivity : AppCompatActivity() {
                     override fun onSuccess(t: Artical) {
                       Log.d("onSuccess","onSuccess"+t.toString())
                         text.text.clear()
-                        saveToWord(t)
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe (object:CompletableObserver{
-                            override fun onSubscribe(d: Disposable) {
-                                Log.d("onSubscribe","onSubscribe  saveToFile")
+                        if (t.imgUrl.size>0){
+                            saveToWord(t)
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe (object:CompletableObserver{
+                                    override fun onSubscribe(d: Disposable) {
+                                        Log.d("onSubscribe","onSubscribe  saveToFile")
 
-                            }
+                                    }
 
-                            override fun onError(e: Throwable) {
-                                Log.d("onError","onError  saveToFile"+e)
-                                dismissProgressBar()
-                            }
+                                    override fun onError(e: Throwable) {
+                                        Log.d("onError","onError  saveToFile"+e)
+                                        dismissProgressBar()
+                                    }
 
-                            override fun onComplete() {
-                                Log.d("onComplete","onComplete  saveToFile")
-                                dismissProgressBar()
-                            }
+                                    override fun onComplete() {
+                                        Log.d("onComplete","onComplete  saveToFile")
+                                        dismissProgressBar()
+                                    }
 
-                        })
+                                })
+                        }
+                        else{
+                            saveToFile(t)
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe (object:CompletableObserver{
+                                    override fun onSubscribe(d: Disposable) {
+                                        Log.d("onSubscribe","onSubscribe  saveToFile")
+
+                                    }
+
+                                    override fun onError(e: Throwable) {
+                                        Log.d("onError","onError  saveToFile"+e)
+                                        dismissProgressBar()
+                                    }
+
+                                    override fun onComplete() {
+                                        Log.d("onComplete","onComplete  saveToFile")
+                                        dismissProgressBar()
+                                    }
+
+                                })
+                        }
+
                     }
 
                     override fun onSubscribe(d: Disposable) {
