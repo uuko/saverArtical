@@ -21,11 +21,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    packagingOptions {
+        exclude 'com/itextpdf/text/pdf/fonts/cmap_info.txt'
+    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-
+    implementation files('libs/poishadow-all.jar')
 //    base
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.appcompat:appcompat:1.0.2'
@@ -61,4 +64,13 @@ dependencies {
 
     // optional - Test helpers for LiveData
     testImplementation 'androidx.arch.core:core-testing:2.0.0'
+
+    implementation 'com.google.code.gson:gson:2.7'
+ implementation 'com.itextpdf:itextg:5.5.10'
+    // https://mvnrepository.com/artifact/com.itextpdf/itext-asian
+    implementation group: 'com.itextpdf', name: 'itext-asian', version: '5.2.0'
+
+//    implementation group: 'com.itextpdf', name: 'itextpdf', version: '+'
+//    implementation group: 'com.itextpdf', name: 'itext-asian', version: '+'
+
 }

@@ -17,8 +17,8 @@ class LofterParser(){
              try {
                  val doc=Jsoup.connect(url).get()
                  val titledoc=doc.select("title")
-                 var imgUrl=doc.select("div.content").select("div.img").select("a").select("img[src]")
-                 val content_doc=doc.select("p")
+                 var imgUrl=doc.select(".imgclasstag").select("img[src]")
+                 val content_doc=doc.select("div.text").select("p")
                  var title=titledoc.text()
                  Log.d("content",content_doc.text())
 

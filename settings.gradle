@@ -1,2 +1,2 @@
-include ':app'
+include ':app', ':poishadow-all'
 rootProject.name='saverArtical'
