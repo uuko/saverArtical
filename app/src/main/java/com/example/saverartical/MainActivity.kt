@@ -63,12 +63,12 @@ class MainActivity : AppCompatActivity() {
         submitAll.setOnClickListener {
             val url=text.text.toString()
             if (url.length>0){
-                parseNovelAllBooksAndSave(url)
-//                if (url.split("https://")[1].contains("novel101.com")){
-//                    parseNovelAllBooksAndSave(url)
-//                } else{
-//                    Toast.makeText(this,"目前還不支持整本功能",Toast.LENGTH_LONG)
-//                }
+
+                if (url.split("https://")[1].contains("czbooks.net")){
+                    parseNovelAllBooksAndSave(url)
+                } else{
+                    Toast.makeText(this,"目前還不支持整本功能",Toast.LENGTH_LONG)
+                }
             }
         }
 
