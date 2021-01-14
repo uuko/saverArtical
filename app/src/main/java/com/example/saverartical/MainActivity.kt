@@ -41,85 +41,149 @@ import androidx.core.content.ContextCompat.getSystemService
 class MainActivity : AppCompatActivity() {
     private var hasBind = false
     lateinit var lofterParser:LofterParser
+    lateinit var czBookParser: CzBookParser
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         submit.setOnClickListener {
-            lofterParser= LofterParser()
             val url=text.text.toString()
-            lofterParser.getLofterParserData(url)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-
-                .subscribe(object : SingleObserver<Artical> {
-                    override fun onSuccess(t: Artical) {
-                      Log.d("onSuccess","onSuccess"+t.toString())
-                        text.text.clear()
-                        if (t.imgUrl.size>0){
-                            saveToWord(t)
-                                .subscribeOn(Schedulers.io())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe (object:CompletableObserver{
-                                    override fun onSubscribe(d: Disposable) {
-                                        Log.d("onSubscribe","onSubscribe  saveToFile")
-
-                                    }
-
-                                    override fun onError(e: Throwable) {
-                                        Log.d("onError","onError  saveToFile"+e)
-                                        dismissProgressBar()
-                                    }
-
-                                    override fun onComplete() {
-                                        Log.d("onComplete","onComplete  saveToFile")
-                                        dismissProgressBar()
-                                    }
-
-                                })
-                        }
-                        else{
-                            saveToFile(t)
-                                .subscribeOn(Schedulers.io())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe (object:CompletableObserver{
-                                    override fun onSubscribe(d: Disposable) {
-                                        Log.d("onSubscribe","onSubscribe  saveToFile")
-
-                                    }
-
-                                    override fun onError(e: Throwable) {
-                                        Log.d("onError","onError  saveToFile"+e)
-                                        dismissProgressBar()
-                                    }
-
-                                    override fun onComplete() {
-                                        Log.d("onComplete","onComplete  saveToFile")
-                                        dismissProgressBar()
-                                    }
-
-                                })
-                        }
-
-                    }
-
-                    override fun onSubscribe(d: Disposable) {
-                        Log.d("onSubscribe","onSubscribe")
-
-                        showProgressBar()
-                    }
-
-                    override fun onError(e: Throwable) {
-                        Log.d("onError","onError"+e)
-                        text.text.clear()
-                        dismissProgressBar()
-                    }
-
-
-                })
-
+            if (url.length>0){
+                if (url.split("https://")[1].contains("czbooks.net")){
+                    parseCzBooksAndSave(url)
+                }
+                else{
+                    parseLofterAndSave(url)
+                }
+            }
 
         }
 
+
+    }
+
+    private fun parseCzBooksAndSave(url: String) {
+        czBookParser= CzBookParser()
+
+        czBookParser.getCzBooksParserData(url)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+
+            .subscribe(object : SingleObserver<Artical> {
+                override fun onSuccess(t: Artical) {
+                    Log.d("onSuccess","onSuccess"+t.toString())
+                    text.text.clear()
+                        saveToFile(t)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe (object:CompletableObserver{
+                                override fun onSubscribe(d: Disposable) {
+                                    Log.d("onSubscribe","onSubscribe  saveToFile")
+
+                                }
+
+                                override fun onError(e: Throwable) {
+                                    Log.d("onError","onError  saveToFile"+e)
+                                    dismissProgressBar()
+                                }
+
+                                override fun onComplete() {
+                                    Log.d("onComplete","onComplete  saveToFile")
+                                    dismissProgressBar()
+                                }
+
+                            })
+
+
+                }
+
+                override fun onSubscribe(d: Disposable) {
+                    Log.d("onSubscribe","onSubscribe")
+
+                    showProgressBar()
+                }
+
+                override fun onError(e: Throwable) {
+                    Log.d("onError","onError"+e)
+                    text.text.clear()
+                    dismissProgressBar()
+                }
+
+
+            })
+    }
+
+    private fun parseLofterAndSave(url: String) {
+        lofterParser= LofterParser()
+
+        lofterParser.getLofterParserData(url)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+
+            .subscribe(object : SingleObserver<Artical> {
+                override fun onSuccess(t: Artical) {
+                    Log.d("onSuccess","onSuccess"+t.toString())
+                    text.text.clear()
+                    if (t.imgUrl.size>0){
+                        saveToWord(t)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe (object:CompletableObserver{
+                                override fun onSubscribe(d: Disposable) {
+                                    Log.d("onSubscribe","onSubscribe  saveToFile")
+
+                                }
+
+                                override fun onError(e: Throwable) {
+                                    Log.d("onError","onError  saveToFile"+e)
+                                    dismissProgressBar()
+                                }
+
+                                override fun onComplete() {
+                                    Log.d("onComplete","onComplete  saveToFile")
+                                    dismissProgressBar()
+                                }
+
+                            })
+                    }
+                    else{
+                        saveToFile(t)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe (object:CompletableObserver{
+                                override fun onSubscribe(d: Disposable) {
+                                    Log.d("onSubscribe","onSubscribe  saveToFile")
+
+                                }
+
+                                override fun onError(e: Throwable) {
+                                    Log.d("onError","onError  saveToFile"+e)
+                                    dismissProgressBar()
+                                }
+
+                                override fun onComplete() {
+                                    Log.d("onComplete","onComplete  saveToFile")
+                                    dismissProgressBar()
+                                }
+
+                            })
+                    }
+
+                }
+
+                override fun onSubscribe(d: Disposable) {
+                    Log.d("onSubscribe","onSubscribe")
+
+                    showProgressBar()
+                }
+
+                override fun onError(e: Throwable) {
+                    Log.d("onError","onError"+e)
+                    text.text.clear()
+                    dismissProgressBar()
+                }
+
+
+            })
 
     }
 
