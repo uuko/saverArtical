@@ -1,5 +1,6 @@
 package com.example.saverartical
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -16,6 +17,9 @@ import java.io.IOException
 import java.net.URL
 import android.graphics.BitmapFactory
 import android.graphics.Bitmap
+import android.net.Uri
+import android.provider.Settings
+import android.widget.Toast
 import java.io.InputStream
 import java.net.HttpURLConnection
 
@@ -112,6 +116,7 @@ class MainActivity : AppCompatActivity() {
 
         }
 
+
     }
 
     private fun saveToFile(t: Artical) :Completable {
@@ -176,7 +181,23 @@ class MainActivity : AppCompatActivity() {
     private fun showProgressBar() {
         progress_circular.visibility= View.VISIBLE
     }
-
+    fun startFloatingButtonService(view: View) {
+        val floatingButtonService=FloatingButtonService()
+        if (floatingButtonService.getStart()) {
+            return
+        }
+        if (!Settings.canDrawOverlays(this)) {
+            Toast.makeText(this, "無權限", Toast.LENGTH_SHORT)
+            startActivityForResult(
+                Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:$packageName")
+                ), 0
+            )
+        } else {
+            startService(Intent(this@MainActivity, FloatingButtonService::class.java))
+        }
+    }
 }
 
 
