@@ -84,13 +84,13 @@ class MainActivity : AppCompatActivity() {
                     Log.d("onSuccess","onSuccess"+wh.toString())
                     if (nowInt<wh.size-2){
                         nowInt++
-                        setLoadText("下載第"+nowInt+"中",true)
+                        setLoadText("下載第"+nowInt+"章中",true)
                         isEnd=false
                         parseNovelOneBookAndSave(wh)
                     }
                     else if (nowInt==wh.size-2){
                         nowInt++
-                        setLoadText("下載第"+nowInt+"中",true)
+                        setLoadText("下載第"+nowInt+"章中",true)
                         isEnd=true
                         parseNovelOneBookAndSave(wh)
                     }
