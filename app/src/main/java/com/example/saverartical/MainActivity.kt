@@ -1,5 +1,6 @@
 package com.example.saverartical
 
+import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -248,9 +249,8 @@ class MainActivity : AppCompatActivity() {
         progress_circular.visibility= View.VISIBLE
     }
 
-    private fun locationChange(view: View){
 
-    }
+
     fun startFloatingButtonService(view: View) {
         val floatingButtonService=FloatingButtonService()
         if (floatingButtonService.getStart()) {
@@ -277,7 +277,6 @@ class MainActivity : AppCompatActivity() {
     internal var mServiceConnection: ServiceConnection = object : ServiceConnection {
 
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            // 获取服务的操作对象
             val binder = service as FloatingButtonService.MyBinder
             binder.getServces()
         }
