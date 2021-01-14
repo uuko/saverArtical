@@ -111,7 +111,6 @@ class MainActivity : AppCompatActivity() {
 
             })
     }
-
     private fun parseLofterAndSave(url: String) {
         lofterParser= LofterParser()
 
@@ -247,6 +246,10 @@ class MainActivity : AppCompatActivity() {
     }
     private fun showProgressBar() {
         progress_circular.visibility= View.VISIBLE
+    }
+
+    private fun locationChange(view: View){
+
     }
     fun startFloatingButtonService(view: View) {
         val floatingButtonService=FloatingButtonService()
