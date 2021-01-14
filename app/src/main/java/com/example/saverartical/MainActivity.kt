@@ -22,6 +22,8 @@ import java.net.URL
 import android.graphics.BitmapFactory
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build
+import android.os.Handler
 import android.os.IBinder
 import android.provider.Settings
 import android.widget.Toast
@@ -61,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         submitAll.setOnClickListener {
             val url=text.text.toString()
             if (url.length>0){
-                Toast.makeText(this,"目前還不支持整本功能",Toast.LENGTH_LONG)
+                parseNovelAllBooksAndSave(url)
 //                if (url.split("https://")[1].contains("novel101.com")){
 //                    parseNovelAllBooksAndSave(url)
 //                } else{
@@ -71,19 +73,53 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
-    private fun parseNovelAllBooksAndSave(url: String) {
-
-        novel101Parser= Novel101Parser()
-
-        novel101Parser.getNovel101DataSizes(url)
+    var nowInt=0
+    private fun  parseNovelOneBookAndSave(wh: List<String>){
+        var isEnd=false
+        czBookParser.getCzBookAllBookParseData(wh,nowInt,isEnd)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-
-            .subscribe(object : SingleObserver<Int> {
-                override fun onSuccess(wh: Int) {
+            .subscribe(object : SingleObserver<Artical> {
+                override fun onSuccess(ar:Artical) {
                     Log.d("onSuccess","onSuccess"+wh.toString())
-                    text.text.clear()
-                    var nowUrl="https://novel101.com/novels/813a951c-ee31-4930-9212-8b9d5a87dc95/chapters/og8"
+                    if (nowInt<wh.size-2){
+                        nowInt++
+                        setLoadText("下載第"+nowInt+"中",true)
+                        isEnd=false
+                        parseNovelOneBookAndSave(wh)
+                    }
+                    else if (nowInt==wh.size-2){
+                        nowInt++
+                        setLoadText("下載第"+nowInt+"中",true)
+                        isEnd=true
+                        parseNovelOneBookAndSave(wh)
+                    }
+                    else{
+
+                        saveToFile(ar)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe (object:CompletableObserver{
+                                override fun onSubscribe(d: Disposable) {
+                                    Log.d("onSubscribe","onSubscribe  saveToFile")
+                                    setLoadText("儲存中",true)
+                                }
+
+                                override fun onError(e: Throwable) {
+                                    Log.d("onError","onError  saveToFile"+e)
+                                    setLoadText("儲存失敗",true)
+                                    dismissProgressBar()
+                                }
+
+                                override fun onComplete() {
+                                    Log.d("onComplete","onComplete  saveToFile")
+                                    setLoadText("儲存中",false)
+                                    dismissProgressBar()
+                                }
+
+                            })
+                    }
+
 
 
 
@@ -100,11 +136,58 @@ class MainActivity : AppCompatActivity() {
                 override fun onError(e: Throwable) {
                     Log.d("onError","onError"+e)
                     text.text.clear()
+                    setLoadText("下載失敗",true)
                     dismissProgressBar()
                 }
 
 
             })
+    }
+    private fun parseNovelAllBooksAndSave(url: String) {
+
+        czBookParser= CzBookParser()
+
+        czBookParser.getCzBookAllBookData(url)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+
+            .subscribe(object : SingleObserver<List<String>> {
+                override fun onSuccess(wh: List<String>) {
+                    Log.d("onSuccess","onSuccess"+wh.toString())
+                    text.text.clear()
+                    setLoadText("總共有"+wh.size+"章，載入中",true)
+                    parseNovelOneBookAndSave(wh)
+
+                }
+
+                override fun onSubscribe(d: Disposable) {
+                    Log.d("onSubscribe","onSubscribe")
+                    setLoadText("載入中",true)
+                    showProgressBar()
+                }
+
+                override fun onError(e: Throwable) {
+                    Log.d("onError","onError"+e)
+                    text.text.clear()
+                    setLoadText("載入失敗",true)
+                    dismissProgressBar()
+                    setLoadText("載入失敗",false)
+                }
+
+
+            })
+    }
+
+    private fun setLoadText(s:String,isVisible: Boolean) {
+        if (isVisible){
+            loadText.visibility=View.VISIBLE
+            loadText.text=s
+        }
+        else{
+            loadText.visibility=View.GONE
+            loadText.text=s
+        }
+
     }
 
     private fun parseInsPhotoAndSave(url: String) {
@@ -167,6 +250,7 @@ class MainActivity : AppCompatActivity() {
             .subscribe(object : SingleObserver<Artical> {
                 override fun onSuccess(t: Artical) {
                     Log.d("onSuccess","onSuccess"+t.toString())
+                    setLoadText("下載成功",true)
                     text.text.clear()
                         saveToFile(t)
                             .subscribeOn(Schedulers.io())
@@ -174,16 +258,18 @@ class MainActivity : AppCompatActivity() {
                             .subscribe (object:CompletableObserver{
                                 override fun onSubscribe(d: Disposable) {
                                     Log.d("onSubscribe","onSubscribe  saveToFile")
-
+                                    setLoadText("儲存中",true)
                                 }
 
                                 override fun onError(e: Throwable) {
                                     Log.d("onError","onError  saveToFile"+e)
+                                    setLoadText("儲存失敗",true)
                                     dismissProgressBar()
                                 }
 
                                 override fun onComplete() {
                                     Log.d("onComplete","onComplete  saveToFile")
+                                    setLoadText("儲存中",false)
                                     dismissProgressBar()
                                 }
 
@@ -194,12 +280,13 @@ class MainActivity : AppCompatActivity() {
 
                 override fun onSubscribe(d: Disposable) {
                     Log.d("onSubscribe","onSubscribe")
-
+                    setLoadText("下載中",true)
                     showProgressBar()
                 }
 
                 override fun onError(e: Throwable) {
                     Log.d("onError","onError"+e)
+                    setLoadText("下載失敗",true)
                     text.text.clear()
                     dismissProgressBar()
                 }
@@ -217,6 +304,7 @@ class MainActivity : AppCompatActivity() {
             .subscribe(object : SingleObserver<Artical> {
                 override fun onSuccess(t: Artical) {
                     Log.d("onSuccess","onSuccess"+t.toString())
+                    setLoadText("下載成功",true)
                     text.text.clear()
                     if (t.imgUrl.size>0){
                         saveToWord(t)
@@ -225,16 +313,18 @@ class MainActivity : AppCompatActivity() {
                             .subscribe (object:CompletableObserver{
                                 override fun onSubscribe(d: Disposable) {
                                     Log.d("onSubscribe","onSubscribe  saveToFile")
-
+                                    setLoadText("儲存中",true)
                                 }
 
                                 override fun onError(e: Throwable) {
                                     Log.d("onError","onError  saveToFile"+e)
+                                    setLoadText("儲存失敗",true)
                                     dismissProgressBar()
                                 }
 
                                 override fun onComplete() {
                                     Log.d("onComplete","onComplete  saveToFile")
+                                    setLoadText("儲存中",false)
                                     dismissProgressBar()
                                 }
 
@@ -247,16 +337,19 @@ class MainActivity : AppCompatActivity() {
                             .subscribe (object:CompletableObserver{
                                 override fun onSubscribe(d: Disposable) {
                                     Log.d("onSubscribe","onSubscribe  saveToFile")
-
+                                    setLoadText("儲存中",true)
                                 }
 
                                 override fun onError(e: Throwable) {
                                     Log.d("onError","onError  saveToFile"+e)
+                                    setLoadText("儲存失敗",true)
                                     dismissProgressBar()
+
                                 }
 
                                 override fun onComplete() {
                                     Log.d("onComplete","onComplete  saveToFile")
+                                    setLoadText("儲存中",false)
                                     dismissProgressBar()
                                 }
 
@@ -267,12 +360,13 @@ class MainActivity : AppCompatActivity() {
 
                 override fun onSubscribe(d: Disposable) {
                     Log.d("onSubscribe","onSubscribe")
-
+                    setLoadText("下載中",true)
                     showProgressBar()
                 }
 
                 override fun onError(e: Throwable) {
                     Log.d("onError","onError"+e)
+                    setLoadText("下載失敗",true)
                     text.text.clear()
                     dismissProgressBar()
                 }
@@ -397,6 +491,27 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 0) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (!Settings.canDrawOverlays(this)) {
+                    Toast.makeText(this, "授权失败", Toast.LENGTH_SHORT).show()
+                } else {
+
+//                    Handler().postDelayed({
+//                        val intent = Intent(this, FloatingButtonService::class.java)
+//                        intent.putExtra("rangeTime", rangeTime)
+//                        hasBind =
+//                            bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE)
+//                        moveTaskToBack(true)
+//                    }, 1000)
+
+                }
+            }
+        }
+    }
     override fun onDestroy() {
         super.onDestroy()
     }
