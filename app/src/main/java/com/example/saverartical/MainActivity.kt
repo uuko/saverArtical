@@ -1,6 +1,9 @@
 package com.example.saverartical
 
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -18,6 +21,7 @@ import java.net.URL
 import android.graphics.BitmapFactory
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.IBinder
 import android.provider.Settings
 import android.widget.Toast
 import java.io.InputStream
@@ -35,7 +39,7 @@ import androidx.core.content.ContextCompat.getSystemService
 
 
 class MainActivity : AppCompatActivity() {
-
+    private var hasBind = false
     lateinit var lofterParser:LofterParser
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -177,7 +181,6 @@ class MainActivity : AppCompatActivity() {
     private fun dismissProgressBar() {
         progress_circular.visibility= View.GONE
     }
-
     private fun showProgressBar() {
         progress_circular.visibility= View.VISIBLE
     }
@@ -195,9 +198,26 @@ class MainActivity : AppCompatActivity() {
                 ), 0
             )
         } else {
-            startService(Intent(this@MainActivity, FloatingButtonService::class.java))
+            //startService(Intent(this@MainActivity, FloatingButtonService::class.java))
+            val intent = Intent(this, FloatingButtonService::class.java)
+            hasBind = bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE)
         }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+    }
+    internal var mServiceConnection: ServiceConnection = object : ServiceConnection {
+
+        override fun onServiceConnected(name: ComponentName, service: IBinder) {
+            // 获取服务的操作对象
+            val binder = service as FloatingButtonService.MyBinder
+            binder.getServces()
+        }
+
+        override fun onServiceDisconnected(name: ComponentName) {}
+    }
+
 }
 
 

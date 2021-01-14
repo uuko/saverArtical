@@ -6,14 +6,16 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PixelFormat
+import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.provider.Settings
-import android.view.Gravity
-import android.view.MotionEvent
-import android.view.View
-import android.view.WindowManager
+import android.view.*
 import android.widget.Button
+
+import android.view.LayoutInflater
+import kotlinx.android.synthetic.main.layout_floating_window.view.*
+
 
 class FloatingButtonService : Service() {
     var isStart = false
@@ -21,21 +23,32 @@ class FloatingButtonService : Service() {
     lateinit var windowsManager:WindowManager
     lateinit var layoutParams :WindowManager.LayoutParams
     lateinit var button: Button
-
+    lateinit var   floatView: View
 
     fun getStart():Boolean{
         return isStart;
     }
 
     override fun onBind(p0: Intent?): IBinder? {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        initWindows()
+        showFloating()
+        return MyBinder()
+    }
+     class MyBinder : Binder() {
+
+        fun getServces():FloatingButtonService{
+            return FloatingButtonService()
+        }
     }
 
-    override fun onCreate() {
-        super.onCreate()
+    private fun initWindows(){
         isStart=true
         windowsManager= getSystemService(Context.WINDOW_SERVICE) as WindowManager;
         layoutParams=WindowManager.LayoutParams()
+        floatView =
+            LayoutInflater.from(applicationContext).inflate(R.layout.layout_floating_window, null)
+
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         } else {
@@ -45,15 +58,18 @@ class FloatingButtonService : Service() {
         layoutParams.gravity = Gravity.LEFT or Gravity.TOP
         layoutParams.flags =
             WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-        layoutParams.width = 500
-        layoutParams.height = 100
+        layoutParams.width = WindowManager.LayoutParams.WRAP_CONTENT
+        layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT
         layoutParams.x = 300
         layoutParams.y = 300
-
+//        layoutParams.width = 500
+//        layoutParams.height = 100
+//        layoutParams.x = 300
+//        layoutParams.y = 300
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        showFloating()
+
         return super.onStartCommand(intent, flags, startId)
     }
 
@@ -62,18 +78,23 @@ class FloatingButtonService : Service() {
             button = Button(applicationContext)
             button.text = "Floating Window"
             button.setBackgroundColor(Color.BLUE)
-            windowsManager.addView(button, layoutParams)
+            windowsManager.addView(floatView, layoutParams)
 
-            button.setOnTouchListener(FloatingOnTouchListener())
-            button.setOnClickListener {
+            floatView.setOnTouchListener(FloatingOnTouchListener())
+            floatView.setOnClickListener {
             val intent = Intent(this@FloatingButtonService, MainActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(intent)
 
             }
+            floatView.closeImageButton.setOnClickListener(View.OnClickListener {
+                closeWindow()
+            })
         }
     }
-
+    fun closeWindow() {
+        windowsManager.removeView(button)
+    }
     private inner class FloatingOnTouchListener : View.OnTouchListener {
         private var x: Int = 0
         private var y: Int = 0
@@ -93,7 +114,7 @@ class FloatingButtonService : Service() {
                     y = nowY
                     layoutParams.x = layoutParams.x + movedX
                     layoutParams.y = layoutParams.y + movedY
-                    windowsManager.updateViewLayout(view, layoutParams)
+                    windowsManager.updateViewLayout(floatView, layoutParams)
                 }
                 else -> {
                 }
