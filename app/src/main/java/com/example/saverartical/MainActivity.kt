@@ -43,6 +43,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var lofterParser:LofterParser
     lateinit var czBookParser: CzBookParser
     lateinit var novel101Parser: Novel101Parser
+    lateinit var stoBookParser: StoCxParser
     lateinit var insPhotoParse: InsPhotoParse
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,7 +54,9 @@ class MainActivity : AppCompatActivity() {
                 if (url.split("https://")[1].contains("czbooks.net")){
                     parseCzBooksAndSave(url)
                 }
-
+                else if (url.split("https://")[1].contains("www.sto.cx")){
+                    parseStoAndSave(url)
+                }
                 else{
                     parseLofterAndSave(url)
                 }
@@ -66,10 +69,25 @@ class MainActivity : AppCompatActivity() {
 
                 if (url.split("https://")[1].contains("czbooks.net")){
                     parseNovelAllBooksAndSave(url)
-                } else{
+                }
+                else if (url.split("https://")[1].contains("www.sto.cx")){
+                    parseStoAllBooksAndSave(url)
+                }else{
                     Toast.makeText(this,"目前還不支持整本功能",Toast.LENGTH_LONG)
                 }
             }
+        }
+
+    }
+
+    private fun setLoadText(s:String,isVisible: Boolean) {
+        if (isVisible){
+            loadText.visibility=View.VISIBLE
+            loadText.text=s
+        }
+        else{
+            loadText.visibility=View.GONE
+            loadText.text=s
         }
 
     }
@@ -95,7 +113,7 @@ class MainActivity : AppCompatActivity() {
                         parseNovelOneBookAndSave(wh)
                     }
                     else{
-
+                        nowInt=0
                         saveToFile(ar)
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
@@ -137,6 +155,7 @@ class MainActivity : AppCompatActivity() {
                     Log.d("onError","onError"+e)
                     text.text.clear()
                     setLoadText("下載失敗",true)
+                    nowInt=0
                     dismissProgressBar()
                 }
 
@@ -178,18 +197,142 @@ class MainActivity : AppCompatActivity() {
             })
     }
 
-    private fun setLoadText(s:String,isVisible: Boolean) {
-        if (isVisible){
-            loadText.visibility=View.VISIBLE
-            loadText.text=s
-        }
-        else{
-            loadText.visibility=View.GONE
-            loadText.text=s
-        }
+    var stoNowInt=0
+    private fun  parseStoOneBookAndSave(wh: List<String>){
+        var isEnd=false
+        stoBookParser.getStBookAllBookParseData(wh,nowInt,isEnd)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object : SingleObserver<Artical> {
+                override fun onSuccess(ar:Artical) {
+                    Log.d("onSuccess","onSuccess"+wh.toString())
+                    if (nowInt<wh.size-2){
+                        nowInt++
+                        setLoadText("下載第"+nowInt+"章中",true)
+                        isEnd=false
+                        parseStoOneBookAndSave(wh)
+                    }
+                    else if (nowInt==wh.size-2){
+                        nowInt++
+                        setLoadText("下載第"+nowInt+"章中",true)
+                        isEnd=true
+                        parseStoOneBookAndSave(wh)
+                    }
+                    else{
+                        nowInt=0
+                        saveToFile(ar)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe (object:CompletableObserver{
+                                override fun onSubscribe(d: Disposable) {
+                                    Log.d("onSubscribe","onSubscribe  saveToFile")
+                                    setLoadText("儲存中",true)
+                                }
 
+                                override fun onError(e: Throwable) {
+                                    Log.d("onError","onError  saveToFile"+e)
+                                    setLoadText("儲存失敗",true)
+                                    dismissProgressBar()
+                                }
+
+                                override fun onComplete() {
+                                    Log.d("onComplete","onComplete  saveToFile")
+                                    setLoadText("儲存中",false)
+                                    dismissProgressBar()
+                                }
+
+                            })
+                    }
+
+
+
+
+
+
+                }
+
+                override fun onSubscribe(d: Disposable) {
+                    Log.d("onSubscribe","onSubscribe")
+
+                    showProgressBar()
+                }
+
+                override fun onError(e: Throwable) {
+                    Log.d("onError","onError"+e)
+                    text.text.clear()
+                    setLoadText("下載失敗",true)
+                    nowInt=0
+                    dismissProgressBar()
+                }
+
+
+            })
     }
+    private fun parseStoAllBooksAndSave(url: String) {
 
+        stoBookParser= StoCxParser()
+
+        stoBookParser.getStoBookAllBookData(url)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+
+            .subscribe(object : SingleObserver<List<String>> {
+                override fun onSuccess(wh: List<String>) {
+                    Log.d("onSuccess","onSuccess"+wh.toString())
+                    text.text.clear()
+                    setLoadText("總共有"+wh.size+"章，載入中",true)
+                    parseStoOneBookAndSave(wh)
+
+                }
+
+                override fun onSubscribe(d: Disposable) {
+                    Log.d("onSubscribe","onSubscribe")
+                    setLoadText("載入中",true)
+                    showProgressBar()
+                }
+
+                override fun onError(e: Throwable) {
+                    Log.d("onError","onError"+e)
+                    text.text.clear()
+                    setLoadText("載入失敗",true)
+                    dismissProgressBar()
+                    setLoadText("載入失敗",false)
+                }
+
+
+            })
+    }
+    private fun parseStoAndSave(url: String) {
+        stoBookParser= StoCxParser()
+
+        stoBookParser.getStoCxParserData(url)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+
+            .subscribe(object : SingleObserver<Artical> {
+                override fun onSuccess(t: Artical) {
+                    Log.d("onSuccess","onSuccess"+t.toString())
+                    text.text.clear()
+
+
+
+                }
+
+                override fun onSubscribe(d: Disposable) {
+                    Log.d("onSubscribe","onSubscribe")
+
+                    showProgressBar()
+                }
+
+                override fun onError(e: Throwable) {
+                    Log.d("onError","onError"+e)
+                    text.text.clear()
+                    dismissProgressBar()
+                }
+
+
+            })
+    }
     private fun parseInsPhotoAndSave(url: String) {
         insPhotoParse= InsPhotoParse()
 
