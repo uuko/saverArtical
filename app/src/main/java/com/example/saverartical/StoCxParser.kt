@@ -14,17 +14,12 @@ class StoCxParser {
                     .cookie("__cfduid", "dd5d94d61c099e8a46eff68a6f85d466c1610680329")
                     .get()
                 val titledoc=doc.select("title")
-                val content_doc=doc.select("div.content")
+                val content_doc=doc.select("#BookContent")
                 var title=titledoc.text()
                 Log.d("content",content_doc.text())
-
-                var  content=content_doc.text()
-                content = content.replace("  ", "\n")
-                    .replace(" ", "\n")
-                var author_list=doc.select("div.name")
-                var author=author_list.text()
+                var author=doc.select("#bookbox").text()
+                val  content=content_doc.text()
                 val imgUrlList= arrayListOf<String>()
-
 //                 artical.value=Artical(title,content,author,url,imgUrlList)
                 it.onSuccess(Artical(title,content,author,url,imgUrlList))
             }
