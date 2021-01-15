@@ -78,14 +78,14 @@ class StoCxParser {
                 val content_doc=doc.select("#BookContent")
                 var title=titledoc.text()
                 Log.d("content",content_doc.text())
-                var author=doc.select("div#bookbox").text()
+                var author=doc.select("#bookbox").text()
                 val  content=content_doc.text()
                 allContent += "第"+nowInt.toString()+"章End..."+"\n"+content.replace("  ", "\n")
                     .replace(" ", "\n")
 //                    val author_list=doc.select("div.name")
 //                    var author=author_list.text()
                 val imgUrlList= arrayListOf<String>()
-                it.onSuccess(Artical(author,allContent,title,url[nowInt],imgUrlList))
+                it.onSuccess(Artical(title,allContent,title,url[nowInt],imgUrlList))
 
 
 
