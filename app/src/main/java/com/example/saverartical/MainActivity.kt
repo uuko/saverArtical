@@ -18,24 +18,24 @@ import io.reactivex.disposables.Disposable
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.net.URL
+
 import android.graphics.BitmapFactory
 import android.graphics.Bitmap
 import android.net.Uri
+
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.provider.Settings
+import android.webkit.CookieManager
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.Toast
-import java.io.InputStream
-import java.net.HttpURLConnection
+import java.net.URL
 
-import com.itextpdf.text.DocumentException
-import androidx.core.app.ComponentActivity
-import androidx.core.app.ComponentActivity.ExtraData
-import androidx.core.content.ContextCompat.getSystemService
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.log
 
 
 class MainActivity : AppCompatActivity() {
@@ -45,16 +45,32 @@ class MainActivity : AppCompatActivity() {
     lateinit var novel101Parser: Novel101Parser
     lateinit var stoBookParser: StoCxParser
     lateinit var insPhotoParse: InsPhotoParse
+    var cookie=""
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        submit.setOnClickListener {
+
+        var webSettings = webview.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        webview.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                  cookie=CookieManager.getInstance().getCookie(url)
+                Log.d("aa",cookie)
+            }
+        }
+        webview.loadUrl("https://www.sto.cx/pcindex.aspx");
+
+
+
+            submit.setOnClickListener {
             val url=text.text.toString()
             if (url.length>0){
                 if (url.split("https://")[1].contains("czbooks.net")){
                     parseCzBooksAndSave(url)
                 }
                 else if (url.split("https://")[1].contains("www.sto.cx")){
+
                     parseStoAndSave(url)
                 }
                 else{
@@ -200,7 +216,7 @@ class MainActivity : AppCompatActivity() {
     var stoNowInt=0
     private fun  parseStoOneBookAndSave(wh: List<String>){
         var isEnd=false
-        stoBookParser.getStBookAllBookParseData(wh,nowInt,isEnd)
+        stoBookParser.getStBookAllBookParseData(wh,nowInt,cookie =cookie )
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(object : SingleObserver<Artical> {
@@ -272,7 +288,7 @@ class MainActivity : AppCompatActivity() {
 
         stoBookParser= StoCxParser()
 
-        stoBookParser.getStoBookAllBookData(url)
+        stoBookParser.getStoBookAllBookData(url,cookie)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
 
@@ -305,7 +321,7 @@ class MainActivity : AppCompatActivity() {
     private fun parseStoAndSave(url: String) {
         stoBookParser= StoCxParser()
 
-        stoBookParser.getStoCxParserData(url)
+        stoBookParser.getStoCxParserData(url,cookie)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
 

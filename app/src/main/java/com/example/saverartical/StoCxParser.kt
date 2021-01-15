@@ -6,12 +6,12 @@ import org.jsoup.Jsoup
 import java.lang.Exception
 
 class StoCxParser {
-    fun getStoCxParserData(url :String) : Single<Artical> {
+    fun getStoCxParserData(url :String,cookie: String) : Single<Artical> {
         return Single.create<Artical> {
 
             try {
                 val doc= Jsoup.connect(url)
-                    .cookie("__cfduid", "dd5d94d61c099e8a46eff68a6f85d466c1610680329")
+                    .cookie("Cookie",cookie)
                     .get()
                 val titledoc=doc.select("title")
                 val content_doc=doc.select("#BookContent")
@@ -31,12 +31,12 @@ class StoCxParser {
 
 
     }
-    fun getStoBookAllBookData(url: String) : Single<List<String>>{
+    fun getStoBookAllBookData(url: String,cookie: String) : Single<List<String>>{
         return Single.create<List<String>> {
 
             try {
                 val doc= Jsoup.connect(url)
-                    .cookie("__cfduid", "dd5d94d61c099e8a46eff68a6f85d466c1610680329")
+                    .cookie("Cookie",cookie)
                     .get()
                 val liUI=doc.select("#webPage")
                 val allPageA=liUI.select("a")
@@ -60,14 +60,14 @@ class StoCxParser {
         }
     }
     var  allContent=""
-    fun getStBookAllBookParseData(url: List<String>,nowInt: Int,end:Boolean) : Single<Artical>{
+    fun getStBookAllBookParseData(url: List<String>,nowInt: Int,cookie:String) : Single<Artical>{
         return Single.create<Artical> {
 
             try {
 
 
                 val doc= Jsoup.connect(url[nowInt])
-                    .cookie("__cfduid", "dd5d94d61c099e8a46eff68a6f85d466c1610680329")
+                    .cookie("Cookie",cookie)
                     .get()
                 val titledoc=doc.select("title")
                 val content_doc=doc.select("#BookContent")
@@ -92,6 +92,7 @@ class StoCxParser {
 
             }
             catch (e : Exception){
+                Log.d("testsssssssss",""+e)
                 it.onError(e)
             }
 
