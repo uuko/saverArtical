@@ -67,10 +67,11 @@ class MainActivity : AppCompatActivity() {
             val url=text.text.toString()
             if (url.length>0){
                 if (url.split("https://")[1].contains("czbooks.net")){
+
                     parseCzBooksAndSave(url)
                 }
                 else if (url.split("https://")[1].contains("www.sto.cx")){
-
+                    var mUrl=url.replace("mbook","book")
                     parseStoAndSave(url)
                 }
                 else{
@@ -87,7 +88,8 @@ class MainActivity : AppCompatActivity() {
                     parseNovelAllBooksAndSave(url)
                 }
                 else if (url.split("https://")[1].contains("www.sto.cx")){
-                    parseStoAllBooksAndSave(url)
+                    var mUrl=url.replace("mbook","book")
+                    parseStoAllBooksAndSave(mUrl)
                 }else{
                     Toast.makeText(this,"目前還不支持整本功能",Toast.LENGTH_LONG)
                 }
